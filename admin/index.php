@@ -27,28 +27,112 @@ include 'header.php';
       <div class="col-md-12">
         <div class="card">
           <div class="card-header">
-            <h3 class="card-title">Product List</h3>
+            <h3 class="card-name">Product List</h3>
           </div>
-          
+          <?php
+          if (!empty($_GET['pageno'])) {
+            $pageno = $_GET['pageno'];
+          } else {
+            $pageno = 1;
+          }
+          $numberOfrecs = 3;
+          $offset = ($pageno - 1) * $numberOfrecs; // starting point to fetch from database
+
+          if (empty($_POST['search'])) {
+            $stmt = $pdo->prepare("SELECT * FROM products ORDER BY id DESC");
+            $stmt->execute();
+            $rawResult = $stmt->fetchAll();
+
+            $total_pages = ceil(count($rawResult) / $numberOfrecs);
+
+            $stmt = $pdo->prepare("SELECT * FROM products ORDER BY id DESC LIMIT $offset,$numberOfrecs");
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+          } else {
+            $searchKey = $_POST['search'];
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE name LIKE '%$searchKey%' ORDER BY id DESC");
+            $stmt->execute();
+            $rawResult = $stmt->fetchAll();
+            $total_pages = ceil(count($rawResult) / $numberOfrecs);
+
+            $stmt = $pdo->prepare("SELECT * FROM products WHERE name LIKE '%$searchKey%' ORDER BY id DESC LIMIT $offset,$numberOfrecs");
+            $stmt->execute();
+            $result = $stmt->fetchAll();
+          }
+
+          ?>
+          <!-- /.card-header -->
           <div class="card-body">
             <div>
-              <a href="add.php" type="button" class="btn btn-success">New Blog Post</a>
+              <a href="product_add.php" type="button" class="btn btn-success">Create New Product</a>
             </div><br>
             <table class="table table-bordered">
               <thead>
                 <tr>
                   <th style="width: 10px">#</th>
-                  <th>Title</th>
-                  <th>Content</th>
+                  <th>name</th>
+                  <th>Description</th>
+                  <th>Category</th>
+                  <th>In Stock</th>
+                  <th>Price</th>
                   <th style="width: 40px">Actions</th>
                 </tr>
               </thead>
               <tbody>
-                
+                <?php
+                if ($result) {
+                  $i = 1;
+                  foreach ($result as $value) {
+                ?>
+
+                <?php
+                  $catStmt = $pdo->prepare("SELECT * FROM categories WHERE id=".$value['category_id']);
+                  $catStmt->execute();
+                  $catResult = $catStmt->fetchAll();
+                ?>
+
+                    <tr>
+                      <td><?php echo $i; ?></td>
+                      <td><?php echo escape($value['name']) ?></td>
+                      <td><?php echo escape(substr($value['description'], 0, 30)) ?></td>
+                      <td><?php echo escape($catResult[0]['name']) ?></td>
+                      <td><?php echo escape($value['quantity']) ?></td>
+                      <td><?php echo escape($value['price']) ?></td>
+                      <td>
+                        <div class="btn-group">
+                          <div class="container">
+                            <a href="product_edit.php?id=<?php echo $value['id'] ?>" type="button" class="btn btn-warning">Edit</a>
+                          </div>
+                          <div class="container">
+                            <a href="product_delete.php?id=<?php echo $value['id'] ?>" onclick="return confirm('Are you sure want to delete this item')" type="button" class="btn btn-danger">Delete</a>
+                          </div>
+                        </div>
+                      </td>
+                    </tr>
+
+                <?php
+                    $i++;
+                  }
+                }
+                ?>
 
               </tbody>
             </table><br>
-            
+            <nav aria-label="Page navigation example" style="float: right">
+              <ul class="pagination">
+                <li class="page-item"><a class="page-link" href="?pageno=1">First</a></li>
+                <li class="page-item <?php if ($pageno <= 1) echo 'disable'; ?>">
+                  <a class="page-link" href="<?php if ($pageno <= 1) echo "#";
+                                              else echo "?pageno=" . ($pageno - 1); ?>">Previous</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="#"><?php echo $pageno; ?></a></li>
+                <li class="page-item <?php if ($pageno >= $total_pages) echo 'disable'; ?>">
+                  <a class="page-link" href="<?php if ($pageno >= $total_pages) echo '#';
+                                              else echo "?pageno=" . ($pageno + 1); ?>">Next</a>
+                </li>
+                <li class="page-item"><a class="page-link" href="?pageno=<?php echo $total_pages ?>">Last</a></li>
+              </ul>
+            </nav>
           </div>
 
         </div>
