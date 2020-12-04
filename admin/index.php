@@ -85,11 +85,11 @@ include 'header.php';
                   foreach ($result as $value) {
                 ?>
 
-                <?php
-                  $catStmt = $pdo->prepare("SELECT * FROM categories WHERE id=".$value['category_id']);
-                  $catStmt->execute();
-                  $catResult = $catStmt->fetchAll();
-                ?>
+                    <?php
+                    $catStmt = $pdo->prepare("SELECT * FROM categories WHERE id=" . $value['category_id']);
+                    $catStmt->execute();
+                    $catResult = $catStmt->fetchAll();
+                    ?>
 
                     <tr>
                       <td><?php echo $i; ?></td>
