@@ -12,6 +12,14 @@ if ($_SESSION['role'] == 0) {
   header("Location: login.php");
 }
 
+if (!empty($_POST['search'])) {
+  setcookie('search',$_POST['search'], time() + (86400 * 30), "/");
+} else {
+  if (empty($_GET['pageno'])) {
+    unset($_COOKIE['search']);
+    setcookie('search', null, -1, '/');
+  }
+}
 
 ?>
 
@@ -35,10 +43,11 @@ include 'header.php';
           } else {
             $pageno = 1;
           }
+
           $numberOfrecs = 3;
           $offset = ($pageno - 1) * $numberOfrecs; // starting point to fetch from database
 
-          if (empty($_POST['search'])) {
+          if (empty($_POST['search']) && empty($_COOKIE['search'])) {
             $stmt = $pdo->prepare("SELECT * FROM products ORDER BY id DESC");
             $stmt->execute();
             $rawResult = $stmt->fetchAll();
@@ -49,7 +58,7 @@ include 'header.php';
             $stmt->execute();
             $result = $stmt->fetchAll();
           } else {
-            $searchKey = $_POST['search'];
+            $searchKey = $_POST['search'] ? $_POST['search'] : $_COOKIE['search'];
             $stmt = $pdo->prepare("SELECT * FROM products WHERE name LIKE '%$searchKey%' ORDER BY id DESC");
             $stmt->execute();
             $rawResult = $stmt->fetchAll();
