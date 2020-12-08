@@ -83,6 +83,8 @@ include 'header.php';
                                     <th style="width: 10px">#</th>
                                     <th>Name</th>
                                     <th>Email</th>
+                                    <th>Address</th>
+                                    <th>Phone</th>
                                     <th>Role</th>
                                     <th style="width: 40px">Actions</th>
                                 </tr>
@@ -98,6 +100,8 @@ include 'header.php';
                                             <td><?php echo $i; ?></td>
                                             <td><?php echo escape($value['name']) ?></td>
                                             <td><?php echo escape($value['email']) ?></td>
+                                            <td><?php echo escape($value['address']) ?></td>
+                                            <td><?php echo escape($value['phone']) ?></td>
                                             <td><?php echo $value['role'] ?></td>
                                             <td>
                                                 <div class="btn-group">
