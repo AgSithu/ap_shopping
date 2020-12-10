@@ -19,7 +19,7 @@ if (!empty($_GET['pageno'])) {
 	$pageno = 1;
 }
 
-$numberOfrecs = 1;
+$numberOfrecs = 5;
 $offset = ($pageno - 1) * $numberOfrecs; // starting point to fetch from database
 
 if (empty($_POST['search']) && empty($_COOKIE['search'])) {
@@ -70,7 +70,6 @@ if (empty($_POST['search']) && empty($_COOKIE['search'])) {
 		$stmt->execute();
 		$result = $stmt->fetchAll();
 	}
-	
 }
 
 ?>
@@ -140,7 +139,7 @@ if (empty($_POST['search']) && empty($_COOKIE['search'])) {
 						foreach ($result as $key => $value) { ?>
 							<div class="col-lg-4 col-md-6">
 								<div class="single-product">
-									<img class="img-fluid" src="admin/images/<?php echo escape($value['image']) ?>" alt="image can't load!" style="height: 250px">
+									<a href="product_detail.php?product_id=<?php echo $value['id'] ?>"><img class="img-fluid" src="admin/images/<?php echo escape($value['image']) ?>" alt="image can't load!" style="height: 250px"></a>
 									<div class="product-details">
 										<h6><?php echo escape($value['name']) ?></h6>
 										<div class="price">
