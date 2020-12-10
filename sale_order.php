@@ -1,3 +1,70 @@
+<?php
+session_start();
+
+require 'config/config.php';
+require 'config/common.php';
+
+if (!empty($_SESSION['cart'])) {
+
+	$userId = $_SESSION['user_id'];
+	$total = 0;
+
+	foreach ($_SESSION['cart'] as $key => $qty) {
+		$id = str_replace('id', '', $key);
+
+		$stmt = $pdo->prepare("SELECT * FROM products WHERE id=" . $id);
+		$stmt->execute();
+
+		$result = $stmt->fetch(PDO::FETCH_ASSOC);
+		$total += $result['price'] * $qty;
+	}
+
+	// insert into sale orders table 
+	$stmt = $pdo->prepare("INSERT INTO sale_orders(user_id,total_price,order_date) VALUES (:user_id,:total_price,:order_date)");
+	$result = $stmt->execute(
+		array(
+			':user_id' => $userId,
+			'total_price' => $total,
+			'order_date' => date('Y-m-d H:i:s')
+		)
+	);
+
+	if ($result) {
+		$saleOrderId = $pdo->lastInsertId();
+
+		// insert into sale_order_detail
+		foreach ($_SESSION['cart'] as $key => $qty) {
+			$id = str_replace('id', '', $key);
+
+			$stmt = $pdo->prepare("INSERT INTO sale_order_detail(sale_order_id,product_id,quantity) VALUES (:sid,:pid,:qty)");
+			$result = $stmt->execute(
+				array(
+					'sid' => $saleOrderId,
+					':pid' => $id,
+					'qty' => $qty,
+				)
+			);
+
+			$qtyStmt = $pdo->prepare("SELECT quantity FROM products WHERE id=" . $id);
+			$qtyStmt->execute();
+			$qtyResult = $qtyStmt->fetch(PDO::FETCH_ASSOC);
+
+			$updateQty = $qtyResult['quantity'] - $qty;
+
+			$stmt = $pdo->prepare("UPDATE products SET quantity=:qty WHERE id=:pid");
+			$result = $stmt->execute(
+				array(
+					':qty' => $updateQty,
+					':pid' => $id
+				)
+			);
+		}
+		unset($_SESSION['cart']);
+	}
+}
+?>
+
+
 <!DOCTYPE html>
 <html lang="zxx" class="no-js">
 
@@ -15,7 +82,7 @@
 	<!-- meta character set -->
 	<meta charset="UTF-8">
 	<!-- Site Title -->
-	<title>Karma Shop</title>
+	<title>AP Shop</title>
 
 	<!--
 		CSS
@@ -38,9 +105,10 @@
 			<nav class="navbar navbar-expand-lg navbar-light main_box">
 				<div class="container">
 					<!-- Brand and toggle get grouped for better mobile display -->
-					<a class="navbar-brand logo_h" href="index.html"><h4>AP Shopping<h4></a>
-					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent"
-					 aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+					<a class="navbar-brand logo_h" href="index.php">
+						<h4>AP Shopping<h4>
+					</a>
+					<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
 						<span class="icon-bar"></span>
@@ -88,30 +156,7 @@
 	<section class="order_details section_gap">
 		<div class="container">
 			<h3 class="title_confirmation">Thank you. Your order has been received.</h3>
-			<div class="row order_d_inner">
-				<div class="col-lg-6">
-					<div class="details_item">
-						<h4>Order Info</h4>
-						<ul class="list">
-							<li><a href="#"><span>Order number</span> : 60235</a></li>
-							<li><a href="#"><span>Date</span> : Los Angeles</a></li>
-							<li><a href="#"><span>Total</span> : USD 2210</a></li>
-							<li><a href="#"><span>Payment method</span> : Check payments</a></li>
-						</ul>
-					</div>
-				</div>
-				<div class="col-lg-6">
-					<div class="details_item">
-						<h4>Shipping Address</h4>
-						<ul class="list">
-							<li><a href="#"><span>Street</span> : 56/8</a></li>
-							<li><a href="#"><span>City</span> : Los Angeles</a></li>
-							<li><a href="#"><span>Country</span> : United States</a></li>
-							<li><a href="#"><span>Postcode </span> : 36952</a></li>
-						</ul>
-					</div>
-				</div>
-			</div>
+
 		</div>
 	</section>
 	<!--================End Order Details Area =================-->
@@ -120,10 +165,13 @@
 	<footer class="footer-area section_gap">
 		<div class="container">
 			<div class="footer-bottom d-flex justify-content-center align-items-center flex-wrap">
-				<p class="footer-text m-0"><!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-Copyright &copy;<script>document.write(new Date().getFullYear());</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
-<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
-</p>
+				<p class="footer-text m-0">
+					<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+					Copyright &copy;<script>
+						document.write(new Date().getFullYear());
+					</script> All rights reserved | This template is made with <i class="fa fa-heart-o" aria-hidden="true"></i> by <a href="https://colorlib.com" target="_blank">Colorlib</a>
+					<!-- Link back to Colorlib can't be removed. Template is licensed under CC BY 3.0. -->
+				</p>
 			</div>
 		</div>
 	</footer>
@@ -133,8 +181,7 @@ Copyright &copy;<script>document.write(new Date().getFullYear());</script> All r
 
 
 	<script src="js/vendor/jquery-2.2.4.min.js"></script>
-	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4"
-	 crossorigin="anonymous"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.11.0/umd/popper.min.js" integrity="sha384-b/U6ypiBEHpOf/4+1nzFpr53nxSS+GLCkfwBdFNTxtclqqenISfwAzpKaMNFNmj4" crossorigin="anonymous"></script>
 	<script src="js/vendor/bootstrap.min.js"></script>
 	<script src="js/jquery.ajaxchimp.min.js"></script>
 	<script src="js/jquery.nice-select.min.js"></script>

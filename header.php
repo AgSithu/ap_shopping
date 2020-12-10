@@ -19,7 +19,7 @@ require 'config/common.php';
 	<!-- meta character set -->
 	<meta charset="UTF-8">
 	<!-- Site Title -->
-	<title>Karma Shop</title>
+	<title>AP Shop</title>
 
 	<!--
             CSS
