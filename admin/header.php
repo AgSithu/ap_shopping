@@ -136,13 +136,13 @@ scratch. This page gets rid of all links and provides the needed markup only.
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="monthly_report" class="nav-link">
+                                    <a href="monthly_report.php" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Monthly Report</p>
                                     </a>
                                 </li>
                                 <li class="nav-item">
-                                    <a href="royal_cus.php" class="nav-link">
+                                    <a href="royal_customer.php" class="nav-link">
                                         <i class="far fa-circle nav-icon"></i>
                                         <p>Royal Customer</p>
                                     </a>
