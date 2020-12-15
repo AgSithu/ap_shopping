@@ -132,6 +132,7 @@ if ($_POST) {
 					<div class="login_form_inner">
 						<h3>Log in to enter</h3>
 						<form class="row login_form" action="login.php" method="post" id="contactForm" novalidate="novalidate">
+							<input name="_token" type="hidden" value="<?php echo $_SESSION['_token']; ?>">
 							<div class="col-md-12 form-group">
 								<input type="text" class="form-control" id="email" name="email" placeholder="Email" onfocus="this.placeholder = ''" onblur="this.placeholder = 'Email'">
 							</div>

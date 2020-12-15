@@ -4,63 +4,67 @@ session_start();
 require 'config/config.php';
 require 'config/common.php';
 
+if (empty($_SESSION['user_id']) && empty($_SESSION['logged_in'])) {
+	header('Location: login.php');
+}
+
 if (!empty($_SESSION['cart'])) {
 
-	$userId = $_SESSION['user_id'];
-	$total = 0;
+$userId = $_SESSION['user_id'];
+$total = 0;
 
-	foreach ($_SESSION['cart'] as $key => $qty) {
-		$id = str_replace('id', '', $key);
+foreach ($_SESSION['cart'] as $key => $qty) {
+$id = str_replace('id', '', $key);
 
-		$stmt = $pdo->prepare("SELECT * FROM products WHERE id=" . $id);
-		$stmt->execute();
+$stmt = $pdo->prepare("SELECT * FROM products WHERE id=" . $id);
+$stmt->execute();
 
-		$result = $stmt->fetch(PDO::FETCH_ASSOC);
-		$total += $result['price'] * $qty;
-	}
+$result = $stmt->fetch(PDO::FETCH_ASSOC);
+$total += $result['price'] * $qty;
+}
 
-	// insert into sale orders table 
-	$stmt = $pdo->prepare("INSERT INTO sale_orders(user_id,total_price,order_date) VALUES (:user_id,:total_price,:order_date)");
-	$result = $stmt->execute(
-		array(
-			':user_id' => $userId,
-			'total_price' => $total,
-			'order_date' => date('Y-m-d H:i:s')
-		)
-	);
+// insert into sale orders table
+$stmt = $pdo->prepare("INSERT INTO sale_orders(user_id,total_price,order_date) VALUES (:user_id,:total_price,:order_date)");
+$result = $stmt->execute(
+array(
+':user_id' => $userId,
+'total_price' => $total,
+'order_date' => date('Y-m-d H:i:s')
+)
+);
 
-	if ($result) {
-		$saleOrderId = $pdo->lastInsertId();
+if ($result) {
+$saleOrderId = $pdo->lastInsertId();
 
-		// insert into sale_order_detail
-		foreach ($_SESSION['cart'] as $key => $qty) {
-			$id = str_replace('id', '', $key);
+// insert into sale_order_detail
+foreach ($_SESSION['cart'] as $key => $qty) {
+$id = str_replace('id', '', $key);
 
-			$stmt = $pdo->prepare("INSERT INTO sale_order_detail(sale_order_id,product_id,quantity) VALUES (:sid,:pid,:qty)");
-			$result = $stmt->execute(
-				array(
-					'sid' => $saleOrderId,
-					':pid' => $id,
-					'qty' => $qty,
-				)
-			);
+$stmt = $pdo->prepare("INSERT INTO sale_order_detail(sale_order_id,product_id,quantity) VALUES (:sid,:pid,:qty)");
+$result = $stmt->execute(
+array(
+'sid' => $saleOrderId,
+':pid' => $id,
+'qty' => $qty,
+)
+);
 
-			$qtyStmt = $pdo->prepare("SELECT quantity FROM products WHERE id=" . $id);
-			$qtyStmt->execute();
-			$qtyResult = $qtyStmt->fetch(PDO::FETCH_ASSOC);
+$qtyStmt = $pdo->prepare("SELECT quantity FROM products WHERE id=" . $id);
+$qtyStmt->execute();
+$qtyResult = $qtyStmt->fetch(PDO::FETCH_ASSOC);
 
-			$updateQty = $qtyResult['quantity'] - $qty;
+$updateQty = $qtyResult['quantity'] - $qty;
 
-			$stmt = $pdo->prepare("UPDATE products SET quantity=:qty WHERE id=:pid");
-			$result = $stmt->execute(
-				array(
-					':qty' => $updateQty,
-					':pid' => $id
-				)
-			);
-		}
-		unset($_SESSION['cart']);
-	}
+$stmt = $pdo->prepare("UPDATE products SET quantity=:qty WHERE id=:pid");
+$result = $stmt->execute(
+array(
+':qty' => $updateQty,
+':pid' => $id
+)
+);
+}
+unset($_SESSION['cart']);
+}
 }
 ?>
 
@@ -144,7 +148,7 @@ if (!empty($_SESSION['cart'])) {
 				<div class="col-first">
 					<h1>Confirmation</h1>
 					<nav class="d-flex align-items-center">
-						<a href="index.html">Home<span class="lnr lnr-arrow-right"></span></a>
+						<a href="index.php">Home<span class="lnr lnr-arrow-right"></span></a>
 					</nav>
 				</div>
 			</div>
