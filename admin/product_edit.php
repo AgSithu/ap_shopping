@@ -15,12 +15,8 @@ if ($_SESSION['role'] == 0) {
 $stmt = $pdo->prepare("SELECT * FROM products WHERE id=" . $_GET['id']);
 $stmt->execute();
 $result = $stmt->fetchAll();
-// print_r("<pre>");
-// print_r($result);
-// exit();
 
 if ($_POST) {
-    // print_r($_POST['category']);exit();
     if (
         empty($_POST['name']) || empty($_POST['description']) || empty($_POST['category']) ||
         empty($_POST['quantity']) || empty($_POST['price']) || empty($_FILES['image'])
@@ -43,10 +39,7 @@ if ($_POST) {
         if (empty($_FILES['image'])) {
             $imgError = 'Image is required';
         }
-    }
-    // print_r('hee');
-    // print_r(is_int($_POST['quantity'])); exit();
-    elseif ($_POST['quantity'] && (is_numeric($_POST['quantity']) != true)) {
+    } elseif ($_POST['quantity'] && (is_numeric($_POST['quantity']) != true)) {
         $qtyError = "Quantity should be integer value";
     } elseif ($_POST['price'] && (is_numeric($_POST['price']) != 1)) {
         $priceError = "Price should be integer value";

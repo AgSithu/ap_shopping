@@ -41,8 +41,6 @@ if ($_POST)
             $imgError = 'Image is required';
         }
     } 
-    // print_r('hee');
-    // print_r(is_int($_POST['quantity'])); exit();
     elseif ($_POST['quantity'] && (is_numeric($_POST['quantity']) != true)) 
     {
         $qtyError = "Quantity should be integer value";
